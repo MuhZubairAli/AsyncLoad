@@ -1,7 +1,8 @@
-﻿; (function ($, document, window) {
+﻿;
+(function($, document, window) {
     'use strict';
-   
-    $.fn.visible = function (partial) {
+
+    $.fn.visible = function(partial) {
         var $t = $(this),
             $w = $(window),
             viewTop = $w.scrollTop(),
@@ -17,35 +18,37 @@
         return ((compareBottom <= viewBottom) && (compareTop >= viewTop));
     };
 
-    $.AsyncLoad = function (element, options) {
+    $.AsyncLoad = function(element, options) {
         const defaults = {
             url: null,
             method: 'get',
             data: null,
-            onload: function (data, elm) {
-                console.log("AsyncLoad]: onload]:", data, elm)
+            onload: function(data, elm) {
+                console.log("defualt AsyncLoad]: onload]:", data, elm)
             },
-            onreload: function (data, elm) {
-                console.log("AsyncLoad]: onreload]:", data, elm);
+            onreload: function(data, elm) {
+                console.log("default AsyncLoad]: onreload]:", data, elm);
                 this.onload(data, elm);
             },
-            onpostload: function (elm) { },
-            onerror: function (elm, textStatus = 'Error Occurred', errorThrown = '', xhr = { responseText: '' }) {
-                console.log("AsyncLoad]: onerror]:", textStatus, errorThrown, elm);
+            onpostload: function(elm) {},
+            onerror: function(elm, textStatus = 'Error Occurred', errorThrown = '', xhr = { responseText: '' }) {
+                //console.log("AsyncLoad]: onerror]:", textStatus, errorThrown, elm);
                 var $elm = elm.find(".overlay").first()
-                if ($elm && $elm.width() > 200) {
+                if ($elm && $elm.width() > 100) {
+                    if (xhr.responseText === undefined)
+                        xhr.responseText = (typeof xhr.state === "function") ? xhr.responseText = xhr.state() : "request unsuccessful";
                     var errMsgFull = errorThrown.length === 0 ? xhr.responseText.indexOf('<!DOCTYPE') === -1 ? xhr.responseText : "" : errorThrown;
                     var errMsg = errMsgFull;
                     if (errMsgFull.length > 128)
                         errMsg = errMsgFull.substr(0, 120) + '...';
                     $elm.append('<p class="text-small"><b>' + textStatus + (xhr.status ? ' [' + xhr.status + ']' : '') + ': </b> ' + errMsg + '</p>');
                     if (errMsgFull.length > 128)
-                        $elm.find('p').click(function () {
+                        $elm.find('p').click(function() {
                             alert(errMsgFull);
                         })
                 }
             },
-            onpreload: function (data, elm) {
+            onpreload: function(data, elm) {
                 return data;
             },
 
@@ -69,7 +72,7 @@
 
             lazyLoad: $.AsyncLoad.config.lazyLoad || false,
             preloaderHtml: '<i class="loading-icon"></i>',
-            errorHtml: '<i class="zwicon-exclamation-triangle"></i>',
+            errorHtml: '<i class="error"></i>',
             status: 'i', // statuses -> i=initialized | l=loading | d=done
             isLoaded: false, // whether onload has been called as initial load,
             cache: {}
@@ -77,7 +80,7 @@
 
         this.configs = $.extend({}, defaults, options)
 
-        this.init = function () {
+        this.init = function() {
             if ($.AsyncLoad.configs && typeof $.AsyncLoad.configs === "object")
                 this.configs = $.extend(true, this.configs, $.AsyncLoad.configs);
 
@@ -96,14 +99,14 @@
                 this.configs.overlayElement = this.configs['container'].find('div.overlay').hide();
             }
 
-            this.configs.setOverlayStatus = function (status, configs = {}) {
+            this.configs.setOverlayStatus = function(status, configs = {}) {
                 var c = $.extend(true, { speed: 0 }, configs);
                 if (status === undefined || typeof status !== "string")
                     return;
 
                 if (status === "busy" || status === "loading") {
                     this.cache['prop-overflow'] = this['container'].css('overflow');
-                    this['container'].css('overflow','hidden')
+                    this['container'].css('overflow', 'hidden')
                     this.status = 'l';
                     if (!this.overlayElement.hasClass("animate__spin"))
                         this.overlayElement.addClass("animate__spin");
@@ -116,7 +119,7 @@
                         this.overlayElement.removeClass("animate__spin");
 
                     this.overlayElement.html(this.errorHtml);
-                    this.onerror(element, c.status || "Error Occured", c.error || "unknown error");
+                    this.onerror(element, c.status || "Error Occured", c.error || c.xhr.state() || "unknown error", c.xhr);
                     this.overlayElement.fadeIn(c.speed);
                 } else if (status === "done" || status === "ok") {
                     this['container'].css('overflow', this.cache['prop-overflow'])
@@ -127,7 +130,7 @@
 
             if (element.data('asyncload-url'))
                 this.configs.url = element.data('asyncload-url')
-            
+
             if (element.data('asyncload-data'))
                 this.configs.data = element.data('asyncload-data')
 
@@ -144,7 +147,7 @@
             }
         }
 
-        this.reInit = function (element, options) {
+        this.reInit = function(element, options) {
             this.configs = $.extend(true, this.configs, options);
             this.configs.overlayElement.hide();
             if (element.visible(true))
@@ -159,7 +162,7 @@
             }
         }
 
-        this.load = function (urlOrData, element) {
+        this.load = function(urlOrData, element) {
             if ($.AsyncLoad.lazyCandidates[element.attr('id')] !== undefined)
                 delete $.AsyncLoad.lazyCandidates[element.attr('id')];
 
@@ -171,8 +174,8 @@
             }
 
             if (
-                (urlOrData == null || typeof urlOrData === "string")
-                && this.configs.url !== null && this.configs.url.length > 0
+                (urlOrData == null || typeof urlOrData === "string") &&
+                this.configs.url !== null && this.configs.url.length > 0
             )
                 this.ajax();
 
@@ -183,25 +186,21 @@
                         element
                     );
                     this.configs.isLoaded = true;
-                }
-                else
+                } else
                     this.configs.onreload(
                         this.configs.onpreload(urlOrData, element),
                         element
                     );
                 this.configs.setOverlayStatus("done");
                 this.configs.onpostload(element);
-            }
-
-            else if (this.configs.data !== null && typeof this.configs.data === "object") {
+            } else if (this.configs.data !== null && typeof this.configs.data === "object") {
                 if (!this.configs.isLoaded) {
                     this.configs.onload(
                         this.configs.onpreload(this.configs.data, element),
                         element
                     );
                     this.configs.isLoaded = true;
-                }
-                else
+                } else
                     this.configs.onreload(
                         this.configs.onpreload(this.configs.data, element),
                         element
@@ -212,7 +211,7 @@
 
         }
 
-        this.reload = function (data, element) {
+        this.reload = function(data, element) {
             const configs = this.configs;
             // && data !== configs.url // if want to block request to same url
             if (typeof data === "string" || data == undefined) {
@@ -224,7 +223,7 @@
             this.load(data, element);
         }
 
-        this.ajax = function () {
+        this.ajax = function() {
             const configs = this.configs;
             if (configs.url == undefined || configs.url == null) {
                 return;
@@ -236,25 +235,27 @@
                 url: configs.url,
                 type: requetMethod,
                 headers: { 'Accept': 'application/json' },
-                //contentType: "application/json",
                 data: configs.data,
                 crossDomain: true,
-                beforeSend: function () {
+                beforeSend: function() {
                     if (typeof configs.beforeSend === 'function')
                         configs.beforeSend(element);
                 },
-                success: function (data) {
+                success: function(data) {
                     element.data($.AsyncLoad.pluginIndex).load(data, element);
                 },
-                error: function (xhr, textStatus, errorThrown) {
-                    configs.setOverlayStatus("error");
-                    configs.onerror(element, textStatus, errorThrown, xhr);
+                error: function(xhr, textStatus, errorThrown) {
+                    configs.setOverlayStatus("error", {
+                        status: textStatus,
+                        error: errorThrown,
+                        xhr: xhr
+                    });
                 }
             })
         }
 
-        $.fn.AsyncReload = function (newUrlOrData) {
-            return this.each(function () {
+        $.fn.AsyncReload = function(newUrlOrData) {
+            return this.each(function() {
                 const $this = $(this);
                 if ($this.data($.AsyncLoad.pluginIndex) != undefined) {
                     $this.data($.AsyncLoad.pluginIndex).reload(newUrlOrData, $this);
@@ -262,12 +263,12 @@
                     console.error("AsyncLoad not initialized for this element", this)
             })
         };
-        
+
         this.init();
     }
 
-    $.fn.AsyncLoad = function (options) {
-        return this.each(function () {
+    $.fn.AsyncLoad = function(options) {
+        return this.each(function() {
             const $this = $(this);
             if ($this.data($.AsyncLoad.pluginIndex) == undefined) {
                 $this.data($.AsyncLoad.pluginIndex, new $.AsyncLoad($this, options))
@@ -277,7 +278,7 @@
         });
     }
 
-    $.fn.AsyncState = function (state = "busy", options) {
+    $.fn.AsyncState = function(state = "busy", options) {
         var st, ops = options;
         if (state !== undefined && typeof state === "string")
             st = state;
@@ -287,7 +288,7 @@
             ops = state;
         }
 
-        return this.each(function () {
+        return this.each(function() {
             const $this = $(this);
             if ($this.data($.AsyncLoad.pluginIndex) === undefined)
                 $this.data($.AsyncLoad.pluginIndex, new $.AsyncLoad($this, ops));
@@ -299,8 +300,8 @@
         });
     }
 
-    $.fn.AsyncConfig = function (configs) {
-        return this.each(function () {
+    $.fn.AsyncConfig = function(configs) {
+        return this.each(function() {
             const $this = $(this);
             var plugin = $this.data($.AsyncLoad.pluginIndex);
             if (plugin === undefined) {
@@ -311,9 +312,9 @@
             }
         });
     }
-    
-    $.fn.AsyncAdhocWork = function (work) {
-        return this.each(function () {
+
+    $.fn.AsyncAdhocWork = function(work) {
+        return this.each(function() {
             const $this = $(this);
             var plugin = $this.data($.AsyncLoad.pluginIndex);
             if (plugin === undefined) {
@@ -351,7 +352,7 @@
                 }
                 return true;
             }
-            
+
             var scrollConfig = work['scrollTo'];
             var scroll = scrollConfig && ((scrollConfig['enable'] !== undefined) ? scrollConfig['enable'] : true);
             var am = work['auto'] ? Boolean(work['auto']) : !scroll;
@@ -367,7 +368,7 @@
                 var windowHeight = $(window).height();
                 var cardHeight = $this.height();
 
-                var getOffset = function (position) {
+                var getOffset = function(position) {
                     if (!position)
                         return null;
 
@@ -390,13 +391,13 @@
                     return offset;
                 }
 
-                $('html, body').animate({ scrollTop: getOffset(position) }, speed, function () {
+                $('html, body').animate({ scrollTop: getOffset(position) }, speed, function() {
                     if (doHeavyWork) {
                         var result = doHeavyWork();
                         doHeavyWork = null;
                         if (result) {
                             plugin.configs.
-                                setOverlayStatus('done');
+                            setOverlayStatus('done');
                         } else
                             returnPosition = 'center';
 
@@ -412,21 +413,21 @@
                     }
                 });
             } else
-                setTimeout(function () {
+                setTimeout(function() {
                     if (am && doHeavyWork()) plugin.configs
                         .setOverlayStatus('done');
                 }, 10)
         });
     }
 
-    $(window).ready(function () {
-        $(window).scroll(function () {
+    $(window).ready(function() {
+        $(window).scroll(function() {
             for (var key in $.AsyncLoad.lazyCandidates) {
                 if ($.AsyncLoad.lazyCandidates[key].visible()) {
                     //In order to intantly load the card as comes into the view
                     //$.AsyncLoad.lazyCandidates[key].data($.AsyncLoad.pluginIndex)
                     //    .load(null, $.AsyncLoad.lazyCandidates[key]);
-                    setTimeout(function (elm) {
+                    setTimeout(function(elm) {
                         if (elm.visible(false))
                             elm.data($.AsyncLoad.pluginIndex).load(null, elm)
                         else
@@ -438,13 +439,13 @@
         })
     });
 
-    $.AsyncLoad.generateId = function (elm) {
+    $.AsyncLoad.generateId = function(elm) {
         var id = "elm-" + (Math.random() + "").substr(2);
         if (elm) $(elm).attr('id', id);
         return id;
     }
-    
-    $.AsyncLoad.ensureId = function (elm) {
+
+    $.AsyncLoad.ensureId = function(elm) {
         if (elm == null || elm == undefined)
             return null;
 
@@ -460,4 +461,4 @@
     $.AsyncLoad.lazyCandidates = {};
     $.AsyncLoad.config = {};
 
-}( jQuery, document, window));
+}(jQuery, document, window));

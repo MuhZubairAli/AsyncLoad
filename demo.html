@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AsyncLoad Demo</title>
+    <link rel="stylesheet" href="css/bootstrap.min.css" />
+    <link rel="stylesheet" href="src/async-load.css" />
+</head>
+
+<body>
+    <div class="card" data-asyncload-url="https://api.github.com/users/MuhZubairAli/repos"></div>
+
+    <div class="card"></div>
+
+    <script src="js/jquery-3.4.1.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="src/async-load.js"></script>
+    <script>
+        $(".card[data-asyncload-url]").AsyncLoad({
+            onload: function(data, element) {
+                element.html(
+                    "<table class='table table-bordered table-striped'><thead></thead><tbody></tbody></table>"
+                );
+                drawTable(element, data, [
+                    "id",
+                    "name",
+                    "full_name",
+                    "private",
+                    "html_url",
+                    "description",
+                    "default_branch",
+                    "language",
+                    "git_url",
+                    "forks_count",
+                    "created_at",
+                    "updated_at",
+                    "pushed_at",
+                ]);
+            },
+        });
+
+        function drawTable(card, data, cols) {
+            var th = "<tr>";
+            for (var keys in cols) {
+                th += "<th>" + cols[keys] + "</th>";
+            }
+            th += "</tr>";
+
+            card.find("thead").first().html(th);
+            var body = "";
+            for (var i in data) {
+                var tr = "<tr>";
+                for (var ind in cols) {
+                    tr += "<td>" + data[i][cols[ind]] + "</td>";
+                }
+                tr += "</tr>";
+                body += tr;
+            }
+            card.find("tbody").first().html(body);
+        }
+    </script>
+</body>
+
+</html>
