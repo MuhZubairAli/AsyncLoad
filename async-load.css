@@ -1,0 +1,80 @@
+﻿.card > .overlay, .overlay.deamon {
+    display: block;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    background: rgb(0 0 0 / 0.70);
+    z-index: 100;
+    -webkit-transition: all .5s ease;
+    -moz-transition: all .5s ease;
+    transition: all .5s ease;
+    color: #ffffff;
+}
+
+.overlay.deamon {
+    background: rgb(0 0 0 / 0.20);
+}
+
+    .card > .overlay > i, .overlay.deamon > i {
+        display: block;
+        width: 4rem;
+        height: 4rem;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        margin-top: -2rem;
+        margin-left: -2rem;
+        font-size: 4em;
+        background: url(./refresh.svg);
+    }
+
+    .card > .overlay > p, .overlay.deamon > p {
+        display: block;
+        width: 300px;
+        height: auto;
+        text-align: center;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        margin-left: -150px;
+        margin-top: 3rem;
+    }
+
+.animate__spin > *{
+    animation-name: spin;
+    animation-duration: 2000ms;
+    animation-iteration-count: infinite;
+    animation-timing-function: linear;
+}
+
+@-moz-keyframes spin {
+    from {
+        -moz-transform: rotate(0deg);
+    }
+
+    to {
+        -moz-transform: rotate(360deg);
+    }
+}
+
+@-webkit-keyframes spin {
+    from {
+        -webkit-transform: rotate(0deg);
+    }
+
+    to {
+        -webkit-transform: rotate(360deg);
+    }
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
